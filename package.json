@@ -7,9 +7,10 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
+    "ci": "npm install",
     "test": "vitest",
     "test:watch": "vitest --watch",
-    "test:run": "vitest run",
+    "test:run": "npx vitest run",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build && npm run test:run"
