@@ -1,0 +1,77 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run type checking
+      run: npm run typecheck
+    
+    - name: Run tests
+      run: npm run test:run
+    
+    - name: Build project
+      run: npm run build
+    
+    - name: Run examples
+      run: npm run examples
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Use Node.js 18.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18.x
+        registry-url: 'https://registry.npmjs.org'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build project
+      run: npm run build
+    
+    - name: Publish to npm (if version changed)
+      run: |
+        # Check if version in package.json has changed
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        PUBLISHED_VERSION=$(npm view modulink-ts version 2>/dev/null || echo "0.0.0")
+        
+        if [ "$CURRENT_VERSION" != "$PUBLISHED_VERSION" ]; then
+          echo "Publishing version $CURRENT_VERSION (was $PUBLISHED_VERSION)"
+          npm publish
+        else
+          echo "Version $CURRENT_VERSION already published, skipping"
+        fi
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

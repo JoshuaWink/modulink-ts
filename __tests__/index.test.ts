@@ -344,7 +344,7 @@ describe('ModuLink TypeScript Wrapper', () => {
         return ctx;
       };
 
-      const errorHandlerMiddleware = errorHandler((error: any, ctx: ErrorHandlingContext) => {
+      const errorHandlerMiddleware = errorHandler<ErrorHandlingContext>((error, ctx) => {
         return { ...ctx, errorHandled: true };
       });
 

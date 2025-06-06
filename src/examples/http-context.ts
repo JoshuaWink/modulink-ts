@@ -5,11 +5,11 @@
  * and building web application handlers with type safety.
  */
 
-import { chain, createHttpContext, when, errorHandler } from 'modulink-ts';
-import type { IHttpContext, ILink } from 'modulink-ts';
+import { chain, createHttpContext, when, errorHandler } from '../index.js';
+import type { IHttpContext, ILink } from '../types.js';
 
 // Define extended HTTP context for our web app
-interface WebAppContext extends HttpContext {
+interface WebAppContext extends IHttpContext {
   user?: {
     id: string;
     name: string;
@@ -21,7 +21,7 @@ interface WebAppContext extends HttpContext {
 }
 
 // Authentication link
-const authenticate: Link<WebAppContext> = async (ctx) => {
+const authenticate: ILink<WebAppContext> = async (ctx) => {
   console.log(`Authenticating ${ctx.method} request to ${ctx.url}`);
   
   const authHeader = ctx.headers?.['authorization'];
@@ -48,7 +48,7 @@ const authenticate: Link<WebAppContext> = async (ctx) => {
 };
 
 // Authorization link
-const authorize: Link<WebAppContext> = (ctx) => {
+const authorize: ILink<WebAppContext> = (ctx) => {
   if (!ctx.user) {
     throw new Error('User not authenticated');
   }
@@ -63,7 +63,7 @@ const authorize: Link<WebAppContext> = (ctx) => {
 };
 
 // Validate request data
-const validateRequest: Link<WebAppContext> = (ctx) => {
+const validateRequest: ILink<WebAppContext> = (ctx) => {
   const errors: string[] = [];
   
   if (ctx.method === 'POST' || ctx.method === 'PUT') {
@@ -87,7 +87,7 @@ const validateRequest: Link<WebAppContext> = (ctx) => {
 };
 
 // Process the main business logic
-const processRequest: Link<WebAppContext> = async (ctx) => {
+const processRequest: ILink<WebAppContext> = async (ctx) => {
   if (ctx.validationErrors && ctx.validationErrors.length > 0) {
     return {
       ...ctx,
@@ -137,7 +137,7 @@ const processRequest: Link<WebAppContext> = async (ctx) => {
 };
 
 // Send HTTP response
-const sendResponse: Link<WebAppContext> = (ctx) => {
+const sendResponse: ILink<WebAppContext> = (ctx) => {
   let status = 200;
   
   if (ctx.validationErrors && ctx.validationErrors.length > 0) {
@@ -166,14 +166,14 @@ async function httpContextExample() {
   console.log('=== HTTP Context Example ===\n');
   
   // Main application chain
-  const appChain = chain<WebAppContext>(
+  const appChain = chain(
     authenticate,
     authorize,
     validateRequest,
     processRequest,
     sendResponse
   )
-    .use(errorHandler<WebAppContext>((error, ctx) => {
+    .use(errorHandler((error: Error, ctx: WebAppContext) => {
       console.error('Request failed:', error.message);
       return {
         ...ctx,
@@ -266,15 +266,15 @@ async function conditionalProcessingExample() {
   console.log('\n\n=== Conditional Processing Example ===\n');
   
   // Chain with conditional logic
-  const conditionalChain = chain<WebAppContext>(
+  const conditionalChain = chain(
     // Only authenticate if not a public endpoint
-    when<WebAppContext>(
-      (ctx) => !ctx.url?.includes('/public'),
+    when(
+      (ctx: WebAppContext) => !ctx.url?.includes('/public'),
       authenticate
     ),
     // Only validate admin permissions for admin routes
-    when<WebAppContext>(
-      (ctx) => ctx.url?.includes('/admin'),
+    when(
+      (ctx: WebAppContext) => Boolean(ctx.url?.includes('/admin')),
       authorize
     ),
     processRequest,
@@ -297,7 +297,7 @@ async function main() {
   await conditionalProcessingExample();
 }
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
 

@@ -5,11 +5,11 @@
  * for logging, timing, and data transformation.
  */
 
-import { chain, createContext, timing, logging, transform } from 'modulink-ts';
-import type { Context, Link, Middleware } from 'modulink-ts';
+import { chain, createContext, timing, logging, transformMiddleware } from '../index.js';
+import type { IContext, ILink, IMiddleware } from '../types.js';
 
 // Define context type for API processing
-interface ApiContext extends Context {
+interface ApiContext extends IContext {
   requestId?: string;
   endpoint?: string;
   method?: string;
@@ -20,7 +20,7 @@ interface ApiContext extends Context {
 }
 
 // Custom middleware for request ID generation
-const requestIdMiddleware: Middleware<ApiContext> = (ctx) => {
+const requestIdMiddleware: IMiddleware<ApiContext> = (ctx: ApiContext) => {
   if (!ctx.requestId) {
     ctx.requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
@@ -28,7 +28,7 @@ const requestIdMiddleware: Middleware<ApiContext> = (ctx) => {
 };
 
 // Custom middleware for API response validation
-const responseValidationMiddleware: Middleware<ApiContext> = (ctx) => {
+const responseValidationMiddleware: IMiddleware<ApiContext> = (ctx: ApiContext) => {
   if (ctx.responseData && !ctx.status) {
     ctx.status = 200; // Default success status
   }
@@ -36,7 +36,7 @@ const responseValidationMiddleware: Middleware<ApiContext> = (ctx) => {
 };
 
 // Link functions
-const authenticateRequest: Link<ApiContext> = async (ctx) => {
+const authenticateRequest: ILink<ApiContext> = async (ctx) => {
   console.log(`[${ctx.requestId}] Authenticating ${ctx.method} request to ${ctx.endpoint}`);
   
   // Simulate authentication delay
@@ -45,7 +45,7 @@ const authenticateRequest: Link<ApiContext> = async (ctx) => {
   return { ...ctx, authenticated: true };
 };
 
-const processRequest: Link<ApiContext> = async (ctx) => {
+const processRequest: ILink<ApiContext> = async (ctx) => {
   console.log(`[${ctx.requestId}] Processing request data`);
   
   // Simulate processing
@@ -60,7 +60,7 @@ const processRequest: Link<ApiContext> = async (ctx) => {
   return { ...ctx, responseData };
 };
 
-const sendResponse: Link<ApiContext> = (ctx) => {
+const sendResponse: ILink<ApiContext> = (ctx) => {
   console.log(`[${ctx.requestId}] Sending response with status ${ctx.status}`);
   
   return {
@@ -75,7 +75,7 @@ async function middlewareExample() {
   console.log('=== Middleware Example ===\n');
   
   // Create enhanced chain with middleware
-  const apiChain = chain<ApiContext>(
+  const apiChain = chain(
     authenticateRequest,
     processRequest,
     sendResponse
@@ -85,19 +85,19 @@ async function middlewareExample() {
     // Add custom request ID middleware
     .use(requestIdMiddleware)
     // Add input middleware (runs before each link)
-    .onInput((ctx) => {
+    .onInput((ctx: ApiContext) => {
       console.log(`[${ctx.requestId}] Input middleware: Processing started`);
       return ctx;
     })
     // Add output middleware (runs after each link)
     .onOutput(responseValidationMiddleware)
-    .onOutput((ctx) => {
+    .onOutput((ctx: ApiContext) => {
       console.log(`[${ctx.requestId}] Output middleware: Link completed`);
       return ctx;
     });
   
   // Create context
-  const context = createContext<ApiContext>({
+  const context = createContext({
     endpoint: '/api/users',
     method: 'POST',
     requestData: {
@@ -128,30 +128,28 @@ async function transformMiddlewareExample() {
   console.log('\n=== Transform Middleware Example ===\n');
   
   // Simple processing chain
-  const transformChain = chain<ApiContext>(
-    (ctx) => {
+  const transformChain = chain(
+    (ctx: ApiContext) => {
       console.log('Processing data...');
       return { ...ctx, step1: 'completed' };
     },
-    (ctx) => {
+    (ctx: ApiContext) => {
       console.log('Finalizing...');
       return { ...ctx, step2: 'completed' };
     }
   )
     // Transform input data
-    .onInput(transform((ctx) => ({
-      ...ctx,
+    .onInput(transformMiddleware((ctx: ApiContext) => ({
       transformedAt: new Date().toISOString(),
       originalData: ctx.requestData
     })))
     // Transform output data
-    .onOutput(transform((ctx) => ({
-      ...ctx,
+    .onOutput(transformMiddleware((ctx: ApiContext) => ({
       finalizedAt: new Date().toISOString(),
       summary: `Processed ${ctx.step1} and ${ctx.step2}`
     })));
   
-  const context = createContext<ApiContext>({
+  const context = createContext({
     requestData: { input: 'test data' },
     trigger: 'cli'
   });
@@ -172,7 +170,7 @@ async function main() {
   await transformMiddlewareExample();
 }
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
 

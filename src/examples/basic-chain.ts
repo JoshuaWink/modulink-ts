@@ -5,8 +5,8 @@
  * with ModuLink TypeScript.
  */
 
-import { chain, createContext } from '../src/index.js';
-import type { IContext, ILink } from '../src/types.js';
+import { chain, createContext } from '../index.js';
+import type { IContext, ILink } from '../types.js';
 
 // Define a custom context type
 interface UserContext extends IContext {
@@ -21,7 +21,7 @@ interface UserContext extends IContext {
 }
 
 // Type-safe link functions
-const fetchUser: Link<UserContext> = async (ctx) => {
+const fetchUser: ILink<UserContext> = async (ctx) => {
   console.log(`Fetching user: ${ctx.userId}`);
   
   // Simulate API call
@@ -34,7 +34,7 @@ const fetchUser: Link<UserContext> = async (ctx) => {
   return { ...ctx, userData };
 };
 
-const validateUser: Link<UserContext> = (ctx) => {
+const validateUser: ILink<UserContext> = (ctx) => {
   if (!ctx.userData || !ctx.userData.email) {
     throw new Error('User data is invalid');
   }
@@ -43,7 +43,7 @@ const validateUser: Link<UserContext> = (ctx) => {
   return { ...ctx, validated: true };
 };
 
-const processUser: Link<UserContext> = (ctx) => {
+const processUser: ILink<UserContext> = (ctx) => {
   if (!ctx.validated) {
     throw new Error('User not validated');
   }
@@ -55,14 +55,14 @@ const processUser: Link<UserContext> = (ctx) => {
 // Create and execute the chain
 async function main() {
   // Create a type-safe chain
-  const userChain = chain<UserContext>(
+  const userChain = chain(
     fetchUser,
     validateUser,
     processUser
   );
   
   // Create context with type safety
-  const context = createContext<UserContext>({
+  const context = createContext({
     userId: "12345",
     trigger: 'http'
   });
@@ -82,7 +82,7 @@ async function main() {
 }
 
 // Run the example
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
 

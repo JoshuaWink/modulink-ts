@@ -13,66 +13,33 @@
  * - API identical to modulink-js for easy migration
  */
 
-// Import all from modulink-js
-import * as modulinkJs from 'modulink-js';
-
-// Import and re-export all types
+// Re-export all types
 export type {
-  Context,
-  Ctx,
-  HttpContext,
-  CronContext,
-  CliContext,
-  MessageContext,
-  ErrorContext,
-  Link,
-  Middleware,
-  Chain,
-  EnhancedChain,
-  Trigger,
-  ModuLink,
-  Utils,
-  TypeCreators
-} from './types.js';
+  IContext,
+  IHttpContext,
+  ICronContext,
+  ICliContext,
+  IMessageContext,
+  IErrorContext,
+  ILink,
+  IMiddleware,
+  IChain,
+  ITrigger,
+  IModuLink
+} from './types.ts';
 
-import type {
-  Context,
-  Ctx,
-  Link,
-  Middleware,
-  Chain,
-  EnhancedChain,
-  ModuLink,
-  Utils,
-  TypeCreators
-} from './types.js';
-
-// Type-safe wrapper for chain function
-export const chain = <TContext extends Context = Context>(
-  ...links: Link<TContext>[]
-): EnhancedChain<TContext> => {
-  return modulinkJs.chain(...links) as EnhancedChain<TContext>;
-};
-
-// Type-safe wrapper for createModuLink function
-export const createModuLink = (app?: any): ModuLink => {
-  return modulinkJs.createModuLink(app) as ModuLink;
-};
-
-// Type-safe wrappers for type creators
-export const createContext: TypeCreators['createContext'] = modulinkJs.createContext;
-export const createHttpContext: TypeCreators['createHttpContext'] = modulinkJs.createHttpContext;
-export const createCronContext: TypeCreators['createCronContext'] = modulinkJs.createCronContext;
-export const createCliContext: TypeCreators['createCliContext'] = modulinkJs.createCliContext;
-export const createMessageContext: TypeCreators['createMessageContext'] = modulinkJs.createMessageContext;
-export const createErrorContext: TypeCreators['createErrorContext'] = modulinkJs.createErrorContext;
-export const getCurrentTimestamp: TypeCreators['getCurrentTimestamp'] = modulinkJs.getCurrentTimestamp;
-
-// Type-safe wrapper for utilities
-export const utils: Utils = modulinkJs.utils as Utils;
-
-// Individual utility exports for convenience
-export const {
+// Re-export everything from modulink-js with proper typing
+export {
+  chain,
+  createModuLink,
+  createContext,
+  createHttpContext,
+  createCronContext,
+  createCliContext,
+  createMessageContext,
+  createErrorContext,
+  getCurrentTimestamp,
+  utils,
   when,
   errorHandler,
   validate,
@@ -91,9 +58,40 @@ export const {
   transformMiddleware,
   logging,
   parallelMiddleware
-} = modulinkJs;
+} from 'modulink-js';
 
 // Default export - main ModuLink interface
+import {
+  chain,
+  createModuLink,
+  createContext,
+  createHttpContext,
+  createCronContext,
+  createCliContext,
+  createMessageContext,
+  createErrorContext,
+  getCurrentTimestamp,
+  utils,
+  when,
+  errorHandler,
+  validate,
+  retry,
+  transform,
+  addData,
+  pick,
+  omit,
+  parallel,
+  race,
+  debounce,
+  throttle,
+  cache,
+  timing,
+  performanceTracker,
+  transformMiddleware,
+  logging,
+  parallelMiddleware
+} from 'modulink-js';
+
 const modulink = {
   chain,
   createModuLink,
@@ -105,7 +103,6 @@ const modulink = {
   createErrorContext,
   getCurrentTimestamp,
   utils,
-  // Individual utilities
   when,
   errorHandler,
   validate,
