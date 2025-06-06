@@ -1,0 +1,56 @@
+{
+  "name": "modulink-ts",
+  "version": "1.0.0",
+  "description": "TypeScript wrapper for modulink-js - Composable Function Chains with Multi-Level Middleware",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:run": "vitest run",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build && npm run test:run"
+  },
+  "keywords": [
+    "modulink",
+    "typescript",
+    "javascript",
+    "modules",
+    "communication",
+    "event-driven",
+    "messaging",
+    "middleware",
+    "chains",
+    "functional-programming",
+    "modular"
+  ],
+  "author": "Joshua Wink <joshua@orchestrate.solutions>",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JoshuaWink/modulink-ts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JoshuaWink/modulink-ts/issues"
+  },
+  "homepage": "https://github.com/JoshuaWink/modulink-ts#readme",
+  "dependencies": {
+    "modulink-js": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.2"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
